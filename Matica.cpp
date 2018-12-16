@@ -33,12 +33,27 @@ Matica::Matica(int stlpce, int riadky, int* pole) : m_stlpce(stlpce), m_riadky(r
 
 }
 
+Matica::Matica(const Matica & matica): m_stlpce(matica.m_riadky), m_riadky(matica.m_riadky), m_matica(new int*[matica.m_riadky])
+{
+	for (int i = 0; i < m_riadky; ++i) //vzdy pis ++i
+		m_matica[i] = new int[m_stlpce];
+	for (int r = 0; r < m_riadky; ++r)
+	{
+		for (int s = 0; s < m_stlpce; ++s)
+		{
+			m_matica[r][s] = matica.m_matica[r][s];
+			std::cout << &m_matica[r][s] << "  " << &matica.m_matica[r][s] << std::endl;
+		}
+	}
+	std::cout << "Kopirovacka" << std::endl;
+}
+
 Matica::~Matica()
 {
 	for (int i = 0; i < m_riadky; ++i) //tu uz m riadky lebo mozu byt ine uz
-		delete m_matica[i];
+		delete []m_matica[i];
 
-	delete m_matica;
+	delete []m_matica;
 }
 
 void Matica::SetRozmery(int stlpce, int riadky)
@@ -100,6 +115,79 @@ void Matica::Del(int konst)
 	}
 }
 
+Matica Matica::operator++()
+{
+	this->Pridaj(1);
+	return *this;
+}
+
+Matica Matica::operator--()
+{
+	this->Odcitaj(1);
+	return *this;
+}
+
+//int Matica::operator[](int pozicia1)
+//{
+//	return m_matica[pozicia1];
+//}
+
+Matica Matica::operator+(int konst)
+{
+	Pridaj(konst);
+	return *this; // lebo this je pointer a mi chceme hodnotu
+}
+
+Matica Matica::operator-(int konst)
+{
+	Odcitaj(konst);
+	return *this;
+}
+
+
+Matica Matica::operator*(int konst)
+{
+	Nasob(konst);
+	return *this;
+}
+Matica Matica::operator/(int konst)
+{
+	Del(konst);
+	return *this;
+}
+
+Matica & Matica::operator=(const Matica & other) //other len meno parametra //
+{
+	SetRozmery(other.m_stlpce, other.m_riadky);
+	for (int r = 0; r < m_riadky; ++r)
+	{
+		for (int s = 0; s < m_stlpce; ++s)
+		{
+			m_matica[r][s] = other.m_matica[r][s];
+		}
+	}
+	return *this;
+}
+
+Matica Matica::operator+(Matica & rhs)
+{
+	this->Pridaj(rhs);
+	return *this;
+}
+
+Matica Matica::operator-(Matica & rhs)
+{
+	this->Odcitaj(rhs);
+	return *this;
+}
+
+Matica Matica::operator*(Matica & rhs)
+{
+	this->Nasob(rhs);
+	return *this;
+}
+
+
 void Matica::Pridaj(Matica & mat)
 {
 	if ((m_stlpce != mat.GetRiadky()) && (m_riadky != mat.GetRiadky()))
@@ -134,31 +222,40 @@ void Matica::Odcitaj(Matica & mat)
 
 void Matica::Nasob(Matica & mat)
 {
-	if (m_stlpce!= mat.GetRiadky())
+	if (m_stlpce != mat.GetRiadky())
 	{
 		std::cout << "Riadky prvej a stlpce druhej sa nerovnaju";
 	}
 	else
 	{
-		int** temp = new int*[m_riadky];
+		int** vysledok = new int*[m_riadky];
 		for (int i = 0; i < m_riadky; ++i)
 		{
-			temp[i] = new int[mat.GetStlpce()];
+			vysledok[i] = new int[mat.GetStlpce()];
 		}
 		for (int i = 0; i < m_riadky; ++i)
 		{
-			for (int j = 0; j < mat.GetStlpce)
+			for (int j = 0; j < mat.GetStlpce(); j++)
 			{
-				temp[i][j] += this->GetPrvok(i, j)*mat.GetPrvok(j, i);
+				vysledok[i][j] = 0;
 			}
 		}
-		for (int i = 0; i < (sizeof(p) / sizeof(*p)); ++i)
+
+
+		for (int riadok = 0; riadok < this->GetRiadky(); ++riadok)
 		{
-			for (int j = 0; j < mat.GetStlpce)
+			for (int stlpec = 0; stlpec < mat.GetStlpce(); ++stlpec)
 			{
-				std::cout << temp
+				for (int vnutro = 0; vnutro < this->GetStlpce(); ++vnutro)
+				{
+					vysledok[riadok][stlpec] += this->GetPrvok(riadok, vnutro) * mat.GetPrvok(vnutro, stlpec);
+				}
 			}
 		}
+		this->MaticaNapln(m_riadky, mat.GetStlpce(), vysledok);
+		for (int i = 0; i < m_riadky; ++i) 
+			delete vysledok[i];
+		delete vysledok;	
 	}
 }
 
@@ -178,6 +275,23 @@ void Matica::to_String()
 int Matica::GetPrvok(int riadok, int stlpec)
 {
 	return m_matica[riadok][stlpec];
+}
+
+void Matica::MaticaNapln(int riadky, int stlpce ,int **pole)
+{
+	this->SetRozmery(stlpce, riadky);
+	for (int i = 0; i < riadky; ++i)
+	{
+		for (int j = 0; j < stlpce; j++)
+		{
+			this->NastavPrvok(i, j, pole[i][j]);
+		}
+	}	
+}
+
+void Matica::NastavPrvok(int riadok, int stlpec, int hodnota)
+{
+	m_matica[riadok][stlpec] = hodnota;
 }
 
 void Matica::vymenStlpce(int prvy, int druhy)
@@ -217,4 +331,32 @@ void Matica::transponovat()
 	}
 
 	delete pole;
+}
+
+Matica * Matica::inverzna()
+{
+	//if (m_riadky != m_stlpce)
+	//{
+	//	std::cout << "Nie je to stvorcova matica" << std::endl;
+	//	return nullptr;
+	//} 
+	//else
+	//{
+	//	double** vysledok = new double*[m_riadky];
+	//	for (int i = 0; i < m_riadky; ++i)
+	//	{
+	//		vysledok[i] = new double[m_stlpce];
+	//	}
+	//	for (int i = 0; i < m_riadky; ++i)
+	//	{
+	//		for (int j = 0; j < m_stlpce; j++)
+	//		{
+	//			vysledok[i][j] = 0;
+	//			if(i == j)
+	//				vysledok[i][j] = 1;
+	//		}
+	//	}
+
+	//}
+	return 0;
 }

@@ -16,16 +16,17 @@ int main()
 	};
 	Matica mat(4, 4, (int*)pole);
 	Matica mat2(4, 4, (int*)pole);
-	mat.vymenStlpce(0,1);
+	/*mat.vymenStlpce(0,1);
+	mat.Nasob(mat2);*/
+	//mat = mat + 5;
+	mat + 2;
 	mat.to_String();
-	std::cout << std::endl;
-	mat2.to_String();
-	mat.Odcitaj(mat2);
-	mat.to_String();
-	mat.Pridaj(mat2);
-	mat.to_String();
-	
-	
+	//std::cout << std::endl;
+	//mat2.to_String();
+	//mat.Odcitaj(mat2);
+	//mat.to_String();
+	//mat.Pridaj(mat2);
+	//mat.to_String();
 	return 0;
 }
 
